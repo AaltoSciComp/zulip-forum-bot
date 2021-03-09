@@ -17,9 +17,9 @@ ALLOW_STREAMS = {
     'forum'
     }
 
-def handle_message(event):
-    # https://zulip.com/api/get-events#message
-    print('MESSAGE', event)
+#def handle_message(event):
+#    # https://zulip.com/api/get-events#message
+#    print('MESSAGE', event)
 
 def handle_reaction(event):
     print('REACTION', event)
@@ -77,14 +77,19 @@ def handle_reaction(event):
 
 def event_callback(event):
     print(event['type'])
-    if event['type'] == 'message':
-        handle_message(event)
-    elif event['type'] == 'reaction':
+    #if event['type'] == 'message':
+    #    handle_message(event)
+    if event['type'] == 'reaction':
         handle_reaction(event)
 
 client = zulip.Client(config_file=sys.argv[1])
 
+# Unfortunately API doesn't conveniently have a way to the stream name from
+# stream_id, and stream_id is returned with the messages.  Look up the
+# stream_ids for each stream_name once at the start.
 for sdata in client.get_streams()['streams']:
     if sdata['name'] in ALLOW_STREAMS:
         ALLOW_STREAMS.add(sdata['stream_id'])
+
+# Begin main callback loop
 client.call_on_each_event(event_callback, ['message', 'reaction'])
