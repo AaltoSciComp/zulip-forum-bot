@@ -55,13 +55,19 @@ emojis=check_mark, question
   (default: `check_mark`, `question`, `scissors`).
 * Unfortunately the user groups API does not accept bot requests.
 
+Hardcoded default config:
+
+* `tada` becomes `check_mark` in the topic.
+* Replying to a topic that starts with `check_mark` will transform it
+  to `white_check_mark` to indicate it has been replied to.  Set the
+  config value `edits_reopen` to anything other than `true` to disable
+  this.
+
+
 ## Future development ideas
 
 * Eliminate the need to restart to update the list of allowed users.
-* Mark resolved topics as "no longer resolved" if someone replies
-  again.
-* Some emoji map, so we can use the "popular" emojis instead of having
-  to search in the list.
+* Control commands by private message
 * Control or configuration from within the server somehow.  Could use
   `client.get_storage`, `client.update_storage`, etc. to persist the
   configuration.

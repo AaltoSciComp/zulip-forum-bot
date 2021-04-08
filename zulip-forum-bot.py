@@ -2,7 +2,9 @@ import re
 import sys
 import unicodedata
 
+import emoji
 import zulip
+
 
 # Either email addresses (string) or user_id (integer).  Email addresses will
 # be converted to user_id:s on startup.
@@ -13,19 +15,39 @@ ALLOW_USERS = {
 ALLOW_EMOJIS = {
     'check_mark',
     'question',
+    'tada',
     }
 
 ALLOW_STREAMS = {
     'forum'
     }
 
-#EMOJI_MAP = {
-#    'tada': 'check_mark',
-#    }
+EMOJI_MAP = {
+    'tada': 'check_mark',
+    }
 
-#def handle_message(event):
-#    # https://zulip.com/api/get-events#message
-#    print('MESSAGE', event)
+EDITS_REOPEN = True
+
+
+TEXT_TO_EMOJI = { k.strip(':'): v for k,v in emoji.EMOJI_ALIAS_UNICODE_ENGLISH.items() }
+EMOJI_TO_TEXT = { v: k for k,v in TEXT_TO_EMOJI.items() }
+print(next(iter(EMOJI_TO_TEXT.items())))
+TEXT_TO_EMOJI['check_mark'] = TEXT_TO_EMOJI['heavy_check_mark']
+TEXT_TO_EMOJI['check'] = TEXT_TO_EMOJI['check_mark_button']
+
+def is_allowed_stream(msg):
+    # Filter out private messages
+    if msg['type'] != 'stream':
+        return False
+    # Check if allowed streams
+    stream_id = msg['stream_id']
+    if stream_id not in ALLOW_STREAMS: # integer IDs added here at startup
+        return False
+    return True
+
+def is_allowed_user(user_id):
+    if user_id in ALLOW_USERS or '*' in ALLOW_USERS:
+        return True
 
 def handle_reaction(event):
     print('REACTION', event)
@@ -33,32 +55,27 @@ def handle_reaction(event):
     if event['op'] != 'add':
         return
     user_id = event['user_id']
-    if not (user_id in ALLOW_USERS or '*' in ALLOW_USERS):
-        return
-
-    emoji_name = event['emoji_name']
-    emoji_code = event['emoji_code']
-    emoji = chr(int(emoji_code, 16))
-    if not (emoji_name in ALLOW_EMOJIS or '*' in ALLOW_EMOJIS):
-        return
-    if event['reaction_type'] != 'unicode_emoji':
-        return
+    is_allowed_user(user_id)
 
     # Get reacted-to message
     # https://zulip.com/api/get-messages
     message_id = event['message_id']
     msgs = client.get_messages({'anchor': message_id, 'num_before': 1, 'num_after': 1})
     msg = msgs['messages'][0]
-    # Filter out private messages
-    if msg['type'] != 'stream':
-        return
-    stream_id = msg['stream_id']
-    # Check if allowed streams
-    if stream_id not in ALLOW_STREAMS: # integer IDs added here at startup
+    if not is_allowed_stream(msg):
         return
 
+
+    emoji_name = event['emoji_name']
+    if not (emoji_name in ALLOW_EMOJIS or '*' in ALLOW_EMOJIS):
+        return
+    if event['reaction_type'] != 'unicode_emoji':
+        return
+
+
     old_topic = msg['subject']  # someday, this field may change
-    #emoji = EMOJI_MAP.get(emoji, emoji)
+    emoji_name = EMOJI_MAP.get(emoji_name, emoji_name)
+    emoji = TEXT_TO_EMOJI[emoji_name]
     if unicodedata.category(old_topic[0]) == 'So':
         new_topic = emoji + old_topic[1:]
     else:
@@ -82,10 +99,39 @@ def handle_reaction(event):
         }
     client.update_message(msg)
 
+def handle_message(event):
+    # https://zulip.com/api/get-events#message
+    if not EDITS_REOPEN:
+        return
+    print('MESSAGE', event)
+    topic = event['message']['subject']
+    if not is_allowed_stream(event['message']):
+        return
+
+
+    if topic[0] == TEXT_TO_EMOJI['check_mark']:
+        #if is_allowed_user(event['message']['user_id']):
+        #    return
+        print(topic)
+        new_topic = TEXT_TO_EMOJI['white_check_mark'] + topic[1:]
+
+        # Change topic
+        # https://zulip.com/api/update-message
+        # PATCH
+        msg = {
+            'message_id': event['message']['id'],
+            'topic': new_topic,
+            'propagate_mode': 'change_all',
+            'send_notification_to_old_thread': False,
+            'send_notification_to_new_thread': False,
+            }
+        client.update_message(msg)
+
+
 def event_callback(event):
     print(event['type'])
-    #if event['type'] == 'message':
-    #    handle_message(event)
+    if event['type'] == 'message':
+        handle_message(event)
     if event['type'] == 'reaction':
         handle_reaction(event)
 
@@ -102,6 +148,8 @@ if 'forum' in config:
         ALLOW_STREAMS = set(x.lower() for x in re.split(r'[, ]+', fconfig['streams']))
     if 'emojis' in fconfig:
         ALLOW_EMOJIS = set(x.lower() for x in re.split(r'[, ]+', fconfig['emojis']))
+    if 'edits_reopen' in fconfig:
+        EDITS_REOPEN = fconfig['edits_reopen'].lower() == 'true'
 
 # Unfortunately API doesn't conveniently have a way to the stream name from
 # stream_id, and stream_id is returned with the messages.  Look up the
