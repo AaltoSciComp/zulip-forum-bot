@@ -1,16 +1,16 @@
+import re
 import sys
 import unicodedata
 
 import zulip
 
 ALLOW_USERS = {
-    'aoeu@example.com',
     '*',
     }
 
 ALLOW_EMOJIS = {
-    '*',
     'check_mark',
+    'question',
     }
 
 ALLOW_STREAMS = {
@@ -84,12 +84,30 @@ def event_callback(event):
 
 client = zulip.Client(config_file=sys.argv[1])
 
+import configparser
+config = configparser.ConfigParser()
+config.read(sys.argv[1])
+if 'forum' in config:
+    fconfig = config['forum']
+    if 'users' in fconfig:
+        ALLOW_USERS = set(re.split(r'[, ]+', fconfig['users']))
+    if 'streams' in fconfig:
+        ALLOW_STREAMS = set(re.split(r'[, ]+', fconfig['streams']))
+    if 'emojis' in fconfig:
+        ALLOW_EMOJIS = set(re.split(r'[, ]+', fconfig['emojis']))
+
 # Unfortunately API doesn't conveniently have a way to the stream name from
 # stream_id, and stream_id is returned with the messages.  Look up the
 # stream_ids for each stream_name once at the start.
+ALLOW_STREAMS = set(x.lower() if isinstance(x, str) else x
+                    for x in ALLOW_STREAMS)
 for sdata in client.get_streams()['streams']:
-    if sdata['name'] in ALLOW_STREAMS:
+    if sdata['name'].lower() in ALLOW_STREAMS:
         ALLOW_STREAMS.add(sdata['stream_id'])
+print(ALLOW_USERS)
+print(ALLOW_STREAMS)
+print(ALLOW_EMOJIS)
 
 # Begin main callback loop
+print("starting")
 client.call_on_each_event(event_callback, ['message', 'reaction'])

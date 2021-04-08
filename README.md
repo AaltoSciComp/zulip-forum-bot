@@ -27,13 +27,27 @@ zuliprc file you can get from the Zulip server.
 
 ## Configuration
 
-Currently no configuration, open and edit the file and edit various
-variables to your needs:
+Currently configuration is via the same `zuliprc` file that is used,
+in a `[forum]` section.  As an example:
 
-* `ALLOW_STREAMS`: it will only operate on messages in these
-streams.
-* `ALLOW_USERS`: it will only operate when these users make the reaction.
-* `ALLOW_EMOJIS`: it will only operate on these reaction emojis.
+```
+[api]
+email=...@zulip.your.domain
+key=abcdefghijklmopqrstuvwxyz
+site=https://yourrealm.zulip.your.domain
+[forum]
+users=user3498@zulip.your.domain, userXXXX@zulip.your.domain
+streams=forum
+emojis=check_mark, question
+```
+
+* `streams`: it will only operate on messages in these streams
+  (default: `*` which is all streams).
+* `users`: it will only operate when these users make the reaction.
+  Users go by email, but note that this might be the internal Zulip
+  email (which you have to find out somehow...)  (default: all users)
+* `emojis`: it will only operate on these reaction emojis.  Use `*`
+  for all.  (default: `check_mark`, `question`).
 
 
 ## Development status and maintenance
