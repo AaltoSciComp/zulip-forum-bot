@@ -4,6 +4,8 @@ import unicodedata
 
 import zulip
 
+# Either email addresses (string) or user_id (integer).  Email addresses will
+# be converted to user_id:s on startup.
 ALLOW_USERS = {
     '*',
     }
@@ -17,6 +19,10 @@ ALLOW_STREAMS = {
     'forum'
     }
 
+#EMOJI_MAP = {
+#    'tada': 'check_mark',
+#    }
+
 #def handle_message(event):
 #    # https://zulip.com/api/get-events#message
 #    print('MESSAGE', event)
@@ -26,8 +32,8 @@ def handle_reaction(event):
     # https://zulip.com/api/get-events#reaction-add
     if event['op'] != 'add':
         return
-    user = event['user']['email']
-    if not (user in ALLOW_USERS or '*' in ALLOW_USERS):
+    user_id = event['user_id']
+    if not (user_id in ALLOW_USERS or '*' in ALLOW_USERS):
         return
 
     emoji_name = event['emoji_name']
@@ -52,6 +58,7 @@ def handle_reaction(event):
         return
 
     old_topic = msg['subject']  # someday, this field may change
+    #emoji = EMOJI_MAP.get(emoji, emoji)
     if unicodedata.category(old_topic[0]) == 'So':
         new_topic = emoji + old_topic[1:]
     else:
@@ -90,11 +97,11 @@ config.read(sys.argv[1])
 if 'forum' in config:
     fconfig = config['forum']
     if 'users' in fconfig:
-        ALLOW_USERS = set(re.split(r'[, ]+', fconfig['users']))
+        ALLOW_USERS = set(x.lower() for x in re.split(r'[, ]+', fconfig['users']))
     if 'streams' in fconfig:
-        ALLOW_STREAMS = set(re.split(r'[, ]+', fconfig['streams']))
+        ALLOW_STREAMS = set(x.lower() for x in re.split(r'[, ]+', fconfig['streams']))
     if 'emojis' in fconfig:
-        ALLOW_EMOJIS = set(re.split(r'[, ]+', fconfig['emojis']))
+        ALLOW_EMOJIS = set(x.lower() for x in re.split(r'[, ]+', fconfig['emojis']))
 
 # Unfortunately API doesn't conveniently have a way to the stream name from
 # stream_id, and stream_id is returned with the messages.  Look up the
@@ -104,6 +111,24 @@ ALLOW_STREAMS = set(x.lower() if isinstance(x, str) else x
 for sdata in client.get_streams()['streams']:
     if sdata['name'].lower() in ALLOW_STREAMS:
         ALLOW_STREAMS.add(sdata['stream_id'])
+
+# Now we have to get user_id:s the same way.
+for user in client.get_members({"client_gravatar": True})['members']:
+    if user['email'].lower() in ALLOW_USERS:
+        ALLOW_USERS.add(user['user_id'])
+# This method does not work until Zulip 4.0:
+#for user_email in ALLOW_USERS:
+#    if not isinstance(user_email, str):
+#        continue
+#    ret = client.call_endpoint(url="/users/%s"%(user_email.replace('/', '')),
+#        method="GET",
+#        )
+#    print(ret)
+#    if ret['result'] != 'success':
+#        print("User not found: %s"%(user_email, ))
+#        continue
+#    ALLOW_USERS.add(ret['user']['user_id'])
+
 print(ALLOW_USERS)
 print(ALLOW_STREAMS)
 print(ALLOW_EMOJIS)

@@ -4,13 +4,13 @@ Someone was trying to use Zulip as a Q&A forum.  Threaded topics make
 this possible, but there is still a problem with keeping things
 organized.  Inspired by their workaround, this code will:
 
-* When an emoji reaction (such as :check_mark:) is given, it will
+* When an emoji reaction (such as `check_mark`) is given, it will
   rename the topic of that thread to include the emoji.  Thus, it is
   easy to mark topics as resolved, in progress, etc.
 
 * If your audience doesn't understand threads and comments in existing
   threads, that's annoying.  You can always rename, or you con comment
-  with the :scissors: emoji and it will cut it for you.  You still
+  with the `scissors` emoji and it will cut it for you.  You still
   need to rename the topic yourself, but this seems to be less
   annoying mouse strokes.
 
@@ -20,15 +20,15 @@ organized.  Inspired by their workaround, this code will:
 This is currently alpha-quality but it works for its purpose.  If this
 is useful comment and it can be improved.
 
-Currently no installation, clone the repository and run
-`zulip-forum-bot.py {zuliprc-file}`.  The first argument is the
-zuliprc file you can get from the Zulip server.
+Currently no installation, clone the repository, download your bot's
+zuliprc file from the Zulip server, add configuration to the zuliprc
+file (see below), and run `zulip-forum-bot.py {zuliprc-file}`.
 
 
 ## Configuration
 
-Currently configuration is via the same `zuliprc` file that is used,
-in a `[forum]` section.  As an example:
+Currently configuration is via the same `zuliprc` file that is used to
+access the API, in a `[forum]` section.  As an example:
 
 ```
 [api]
@@ -42,13 +42,29 @@ emojis=check_mark, question
 ```
 
 * `streams`: it will only operate on messages in these streams
-  (default: `*` which is all streams).
+  (default: `*` which is all streams, of course limited to the streams
+  the bot is subscribed to).
 * `users`: it will only operate when these users make the reaction.
-  Users go by email, but note that this might be the internal Zulip
-  email (which you have to find out somehow...)  (default: all users)
+  Users go by email, but note that if emails are not visible, you
+  *must* use the internal Zulip email. (You can find this email in the
+  organization user list).  Users are looked up by email only
+  when the bot is first started, so please restart the bot when you
+  have users listed who are not yet registered.  (default: all users)
 * `emojis`: it will only operate on these reaction emojis.  Use `*`
-  for all.  (default: `check_mark`, `question`).
+  for all.  `scissors` is treated specially and cuts the thread.
+  (default: `check_mark`, `question`, `scissors`).
+* Unfortunately the user groups API does not accept bot requests.
 
+## Future development ideas
+
+* Eliminate the need to restart to update the list of allowed users.
+* Mark resolved topics as "no longer resolved" if someone replies
+  again.
+* Some emoji map, so we can use the "popular" emojis instead of having
+  to search in the list.
+* Control or configuration from within the server somehow.  Could use
+  `client.get_storage`, `client.update_storage`, etc. to persist the
+  configuration.
 
 ## Development status and maintenance
 
