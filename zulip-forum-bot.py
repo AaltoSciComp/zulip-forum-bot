@@ -145,7 +145,7 @@ if 'forum' in config:
     if 'users' in fconfig:
         ALLOW_USERS = set(x.lower() for x in re.split(r'[, ]+', fconfig['users']))
     if 'streams' in fconfig:
-        ALLOW_STREAMS = set(x.lower() for x in re.split(r'[, ]+', fconfig['streams']))
+        ALLOW_STREAMS = set(x.lower().lstrip('#') for x in re.split(r'[, ]+', fconfig['streams']))
     if 'emojis' in fconfig:
         ALLOW_EMOJIS = set(x.lower() for x in re.split(r'[, ]+', fconfig['emojis']))
     if 'edits_reopen' in fconfig:
