@@ -31,7 +31,7 @@ EDITS_REOPEN = True
 
 TEXT_TO_EMOJI = { k.strip(':'): v for k,v in emoji.EMOJI_ALIAS_UNICODE_ENGLISH.items() }
 EMOJI_TO_TEXT = { v: k for k,v in TEXT_TO_EMOJI.items() }
-print(next(iter(EMOJI_TO_TEXT.items())))
+#print(next(iter(EMOJI_TO_TEXT.items())))
 TEXT_TO_EMOJI['check_mark'] = TEXT_TO_EMOJI['heavy_check_mark']
 TEXT_TO_EMOJI['check'] = TEXT_TO_EMOJI['check_mark_button']
 
@@ -177,9 +177,9 @@ for user in client.get_members({"client_gravatar": True})['members']:
 #        continue
 #    ALLOW_USERS.add(ret['user']['user_id'])
 
-print(ALLOW_USERS)
-print(ALLOW_STREAMS)
-print(ALLOW_EMOJIS)
+print('Users:', ALLOW_USERS)
+print('Streams:', ALLOW_STREAMS)
+print('Emojis:', ALLOW_EMOJIS)
 
 # Begin main callback loop
 print("starting")
