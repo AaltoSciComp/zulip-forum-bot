@@ -14,15 +14,20 @@ organized.  Inspired by their workaround, this code will:
   need to rename the topic yourself, but this seems to be less
   annoying mouse strokes.
 
+![Screenshot of forum bot in action](img/forum-bot-demo.png)
+
 
 ## Installation and invocation
 
 This is currently alpha-quality but it works for its purpose.  If this
 is useful comment and it can be improved.
 
-Currently no installation, clone the repository, download your bot's
+Currently no installation, clone the repository, create a bot, add a
+bot to the streams, download your bot's
 zuliprc file from the Zulip server, add configuration to the zuliprc
 file (see below), and run `zulip-forum-bot.py {zuliprc-file}`.
+**Don't forget to add your bot to the streams, this has to be done by
+yourself on the Zulip side.**
 
 
 ## Configuration
