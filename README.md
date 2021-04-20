@@ -54,10 +54,12 @@ emojis=check_mark, question
   *must* use the internal Zulip email. (You can find this email in the
   organization user list).  Users are looked up by email only
   when the bot is first started, so please restart the bot when you
-  have users listed who are not yet registered.  (default: all users)
+  have users listed who are not yet registered.  (default: `*` which
+  is all users)
 * `emojis`: it will only operate on these reaction emojis.  Use `*`
   for all.  `scissors` is treated specially and cuts the thread.
-  (default: `check_mark`, `question`, `scissors`).
+  (default: `check_mark`, `tada` (mapped to check_mark), `question`,
+  `scissors`).
 * Unfortunately the user groups API does not accept bot requests.
 
 Hardcoded default config:

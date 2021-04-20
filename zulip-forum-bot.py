@@ -16,10 +16,11 @@ ALLOW_EMOJIS = {
     'check_mark',
     'question',
     'tada',
+    'scissors',
     }
 
 ALLOW_STREAMS = {
-    'forum'
+    '*'
     }
 
 EMOJI_MAP = {
