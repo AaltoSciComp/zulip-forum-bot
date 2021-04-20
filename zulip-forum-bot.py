@@ -60,7 +60,7 @@ def handle_reaction(event):
     # Get reacted-to message
     # https://zulip.com/api/get-messages
     message_id = event['message_id']
-    msgs = client.get_messages({'anchor': message_id, 'num_before': 1, 'num_after': 1})
+    msgs = client.get_messages({'anchor': message_id, 'num_before': 0, 'num_after': 0})
     msg = msgs['messages'][0]
     if not is_allowed_stream(msg):
         return
